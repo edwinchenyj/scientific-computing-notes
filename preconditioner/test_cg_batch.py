@@ -63,7 +63,6 @@ def M_bmm(X):
 
 # print(f"Solving K={K} linear systems that are {n} x {n} with {As[0].nnz} nonzeros and {m} right hand sides.")
 
-
 ## Use the solver directly w/o considering network issue
 X, _ = cg_batch(A_bmm, B_torch, M_bmm=M_bmm, rtol=1e-6, atol=0.0, maxiter=100, verbose=True)
 
