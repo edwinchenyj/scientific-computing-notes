@@ -28,7 +28,8 @@ K = 8
 As_torch = [None] * K
 Ms_torch = [None] * K
 # B_torch = [None] * K
-B_torch = torch.DoubleTensor(K, n, m).requires_grad_()
+B_torch = torch.DoubleTensor(K, n, m)
+print(B_torch.requires_grad)
 rng = np.random.default_rng()
 rvs = stats.poisson(25, loc=10).rvs
 n = 1000
@@ -40,7 +41,8 @@ for i in range(K):
     M = spdiags(M_column,0,n,n).tocsc()
     As_torch[i] = sparse_numpy_to_torch(A)
     Ms_torch[i] = sparse_numpy_to_torch(M)
-    B_torch[i] = torch.tensor(b)
+    B_torch[i] = torch.tensor(b, requires_grad=True)
+    # print(B_torch[i].requires_grad)
 
 def A_bmm(X):
     Y = [(As_torch[i]@X[i]).unsqueeze(0) for i in range(K)]
