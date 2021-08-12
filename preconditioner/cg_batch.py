@@ -116,6 +116,28 @@ def cg_batch(A_bmm, B, M_bmm=None, X0=None, rtol=1e-3, atol=0., maxiter=None, ve
     return X_k, info
 
 
+class PCG(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, B, A_bmm, M_bmm):
+        ctx.save_for_backward(B)
+        # ctx.rtol = rtol
+        # ctx.atol = atol
+        # ctx.maxiter = maxiter
+        # ctx.verbose = verbose
+        ctx.A_bmm = A_bmm
+        ctx.M_bmm = M_bmm       
+        # ctx.X0 = X0 
+        X, _ = cg_batch(A_bmm, B, M_bmm=M_bmm, rtol=1e-6,
+                atol=0.0, maxiter=100, verbose=True)
+        return X
+    ## TODO: check this one
+    @staticmethod
+    def backward(ctx, grad_output):
+        B = ctx.saved_tensors
+        dB, _ = cg_batch(ctx.A_bmm, grad_output, M_bmm=ctx.M_bmm, rtol=ctx.rtol,
+                atol=ctx.atol, maxiter=ctx.maxiter, verbose=True) 
+        return dB
+
 class CG(torch.autograd.Function):
     def __init__(self, A_bmm, M_bmm=None, rtol=1e-3, atol=0., maxiter=None, verbose=False):
         self.A_bmm = A_bmm

@@ -8,6 +8,7 @@ from cg_batch import PCG, cg_batch
 import time
 from scipy import stats
 from scipy.sparse import spdiags, issparse, random, eye
+from torch.autograd import gradcheck
 
 torch.set_default_tensor_type(torch.DoubleTensor)
 
@@ -63,14 +64,21 @@ def M_bmm(X):
 
 # print(f"Solving K={K} linear systems that are {n} x {n} with {As[0].nnz} nonzeros and {m} right hand sides.")
 
-## Use the solver directly w/o considering network issue
-# X, _ = cg_batch(A_bmm, B_torch, M_bmm=M_bmm, rtol=1e-6, atol=0.0, maxiter=100, verbose=True)
+# ## Use the solver directly w/o considering network issue
+X, _ = cg_batch(A_bmm, B_torch, M_bmm=M_bmm, rtol=1e-6, atol=0.0, maxiter=100, verbose=True)
 
-## TODO : fix the network issue -> pytorch static thing
-# cg = PCG(A_bmm, M_bmm=M_bmm, rtol=1e-5, atol=1e-5, verbose=True)
-# X = cg(B_torch)
+# ## TODO : fix the network issue -> pytorch static thing
+# # cg = PCG(A_bmm, M_bmm=M_bmm, rtol=1e-5, atol=1e-5, verbose=True)
+# # X = cg(B_torch)
 pcg = PCG.apply
 X = pcg(B_torch, A_bmm, M_bmm)
+
+## TODO check how to use this to check gradient
+# test = gradcheck(pcg, (B_torch, A_bmm, M_bmm), eps=1e-6, atol=1e-4)
+# print(test)
+
+
+
 # print(X)
 # start = time.perf_counter()
 # X_np = np.concatenate([np.hstack([splinalg.cg(A, B[:, i], M=M)[0][:, np.newaxis] for i in range(m)])[np.newaxis, :, :]
