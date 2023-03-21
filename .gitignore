@@ -281,3 +281,5 @@ TSWLatexianTemp*
 *.png
 *.eps
 *.html
+
+*/build/*
