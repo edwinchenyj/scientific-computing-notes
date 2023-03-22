@@ -1,3 +1,4 @@
 project(direct_solver)
 
 add_executable(ldlt_solver ldlt_solver.cpp)
+add_executable(modified_ldlt_solver modified_ldlt_solver.cpp)

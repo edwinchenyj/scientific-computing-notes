@@ -3,7 +3,7 @@
 
 using namespace std;
 
-vector<double> ldlt(vector<vector<double>> A, vector<double> b) {
+vector<double> modified_ldlt(vector<vector<double>> A, vector<double> b) {
     int n = A.size();
     vector<double> x(n, 0.0);
     vector<vector<double>> L(n, vector<double>(n, 0.0));
@@ -19,7 +19,14 @@ vector<double> ldlt(vector<vector<double>> A, vector<double> b) {
         D[i] = A[i][i] - sum;
         L[i][i] = 1.0;
 
+        // forward substitution
+        sum = 0.0;
+        for (int k = 0; k < i; k++) {
+            sum += L[i][k] * y[k];
+        }
+        y[i] = (b[i] - sum) / L[i][i];
 
+        // compute L
         for (int j = i + 1; j < n; j++) {
             double sum = 0.0;
             for (int k = 0; k < i; k++) {
@@ -28,15 +35,6 @@ vector<double> ldlt(vector<vector<double>> A, vector<double> b) {
             L[j][i] = (A[j][i] - sum) / D[i];
             L[i][j] = 0.0;
         }
-    }
-
-    // forward substitution
-    for (int i = 0; i < n; i++) {
-        double sum = 0.0;
-        for (int k = 0; k < i; k++) {
-            sum += L[i][k] * y[k];
-        }
-        y[i] = (b[i] - sum) / L[i][i];
     }
 
     // backward substitution
@@ -54,7 +52,7 @@ vector<double> ldlt(vector<vector<double>> A, vector<double> b) {
 int main() {
     vector<vector<double>> A = {{4, 2, 1}, {2, 5, 3}, {1, 3, 6}};
     vector<double> b = {4, 3, 2};
-    vector<double> x = ldlt(A, b);
+    vector<double> x = modified_ldlt(A, b);
 
     cout << "The solution is:\n";
     for (int i = 0; i < x.size(); i++) {
