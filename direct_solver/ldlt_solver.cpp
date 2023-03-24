@@ -3,62 +3,69 @@
 
 using namespace std;
 
-vector<double> ldlt(vector<vector<double>> A, vector<double> b) {
+// Function to solve a linear system using an LDLT decomposition
+vector<double> ldlt_solve(vector<vector<double>>& A, vector<double>& b) {
     int n = A.size();
-    vector<double> x(n, 0.0);
-    vector<vector<double>> L(n, vector<double>(n, 0.0));
+
+    // Create the matrices D and L
     vector<double> D(n, 0.0);
+    vector<vector<double>> L(n, vector<double>(n, 0.0));
+    
     vector<double> y(n, 0.0);
-
-    // LDL decomposition
     for (int i = 0; i < n; i++) {
-        double sum = 0.0;
+        // Calculate the diagonal element
+        D[i] = A[i][i];
+
+        // Update the lower triangular matrix
         for (int k = 0; k < i; k++) {
-            sum += L[i][k] * D[k] * L[i][k];
+            D[i] -= L[i][k] * L[i][k] * D[k];
         }
-        D[i] = A[i][i] - sum;
-        L[i][i] = 1.0;
 
-
+        // Calculate the remaining elements of the lower triangular matrix
         for (int j = i + 1; j < n; j++) {
-            double sum = 0.0;
+            L[j][i] = A[j][i];
             for (int k = 0; k < i; k++) {
-                sum += L[j][k] * D[k] * L[i][k];
+                L[j][i] -= L[j][k] * L[i][k] * D[k];
             }
-            L[j][i] = (A[j][i] - sum) / D[i];
-            L[i][j] = 0.0;
+            L[j][i] /= D[i];
         }
     }
 
-    // forward substitution
+
+    vector<double> x(n, 0.0);
+
+
+    // Solve the system LDy = b
     for (int i = 0; i < n; i++) {
-        double sum = 0.0;
-        for (int k = 0; k < i; k++) {
-            sum += L[i][k] * y[k];
+        y[i] = b[i];
+        for (int j = 0; j < i; j++) {
+            y[i] -= L[i][j] * y[j] * D[j];
         }
-        y[i] = (b[i] - sum) / L[i][i];
+        y[i] = y[i] / D[i];
     }
-
-    // backward substitution
+    // Solve the system Lt x = y
     for (int i = n - 1; i >= 0; i--) {
-        double sum = 0.0;
-        for (int k = i + 1; k < n; k++) {
-            sum += L[k][i] * x[k];
+        x[i] = y[i];
+        for (int j = i + 1; j < n; j++) {
+            x[i] -= L[j][i] * x[j];
         }
-        x[i] = (y[i] - sum) / L[i][i];
     }
 
     return x;
 }
 
+// Sample usage
 int main() {
-    vector<vector<double>> A = {{4, 2, 1}, {2, 5, 3}, {1, 3, 6}};
-    vector<double> b = {4, 3, 2};
-    vector<double> x = ldlt(A, b);
+    // Solve the system Ax = b, where A is a 3x3 symmetric matrix and b is a 3x1 vector
+    vector<vector<double>> A{{4.0, -1.0, 1.0},
+                              {-1.0, 4.0, -2.0},
+                              {1.0, -2.0, 4.0}};
+    vector<double> b{12.0, -1.0, 5.0};
+    vector<double> x = ldlt_solve(A, b);
 
-    cout << "The solution is:\n";
+    // Print the solution
     for (int i = 0; i < x.size(); i++) {
-        cout << x[i] << "\n";
+        cout << "x[" << i << "] = " << x[i] << endl;
     }
 
     return 0;
